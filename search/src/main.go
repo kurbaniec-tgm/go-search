@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"os"
+	"path/filepath"
 	. "search/src/opts"
 	"search/src/searcher"
 )
@@ -30,7 +31,8 @@ func main() {
 	}
 
 	// Add search query to struct
-	opts.Search = args[1]
+	opts.Search = filepath.FromSlash(args[1])
+	opts.Base = filepath.FromSlash(opts.Base)
 
 	/**
 	// Declare variables
