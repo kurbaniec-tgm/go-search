@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gobwas/glob"
 	"github.com/jessevdk/go-flags"
 	"os"
 	"path/filepath"
@@ -31,7 +32,7 @@ func main() {
 	}
 
 	// Add search query to struct
-	opts.Search = filepath.FromSlash(args[1])
+	opts.Search = glob.MustCompile(filepath.FromSlash(args[1]))
 	opts.Base = filepath.FromSlash(opts.Base)
 
 	/**
