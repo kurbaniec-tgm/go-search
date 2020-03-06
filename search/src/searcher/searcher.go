@@ -69,28 +69,28 @@ func find(path string, pattern glob.Glob, wg *sync.WaitGroup) {
 	end := true
 	// Get all files/directories in the current path
 	files, err := ioutil.ReadDir(path)
-	for _, entry := range files {
-		// Build new path from file/directory
-		filePath := filepath.Join(path, entry.Name())
-		// Check if filename or filepath matches pattern
-		check := pattern.Match(entry.Name()) || pattern.Match(filePath)
-		// If so print it
-		if check {
-			fmt.Println(filePath)
+	if err == nil {
+		for _, entry := range files {
+			// Build new path from file/directory
+			filePath := filepath.Join(path, entry.Name())
+			// Check if filename or filepath matches pattern
+			check := pattern.Match(entry.Name()) || pattern.Match(filePath)
+			// If so print it
+			if check {
+				fmt.Println(filePath)
+			}
+			// If entry is a directory spawn a new goroutine that searches for files
+			// in that directory
+			if entry.IsDir() {
+				end = false
+				nextWg.Add(1)
+				go find(filePath, pattern, nextWg)
+			}
 		}
-		// If entry is a directory spawn a new goroutine that searches for files
-		// in this directory
-		if entry.IsDir() {
-			end = false
-			nextWg.Add(1)
-			go find(filePath, pattern, nextWg)
+		// If this function spawned goroutines, wait for them to finish
+		if !end {
+			nextWg.Wait()
 		}
-	}
-	if err != nil {
-		fmt.Println(err)
-	}
-	if !end {
-		nextWg.Wait()
 	}
 	wg.Done()
 }
