@@ -3,7 +3,6 @@ package searcher
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	. "search/src/opts"
 	"sync"
@@ -41,20 +40,36 @@ func FindFiles(opts Opts) {
 	fmt.Printf("filepath.Walk() returned %v\n", err)*/
 
 	// Needed to wait for goroutines
+	/**
 	var wg sync.WaitGroup
 	find(opts.Base, opts.Search, wg)
 	wg.Wait()
+
+	finished := make(chan bool)
+	find2(opts.Base, opts.Search, finished)
+	<- finished
+
+
+	*/
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	find(opts.Base, opts.Search, wg)
+	wg.Wait()
+
 }
 
-func find(path string, pattern string, wg sync.WaitGroup) {
-	defer wg.Done()
+// WaitGroup needs to be a pointer, so that Go does not make a unnecessary
+// copy that calls done.
+// Source: https://stackoverflow.com/a/25234899
+func find(path string, pattern string, wg *sync.WaitGroup) {
+	nextWg := &sync.WaitGroup{}
+	end := true
 	dir, err := ioutil.ReadDir(path)
 	for _, entry := range dir {
 		if entry.IsDir() {
-			fmt.Println("Path: " + filepath.Join(path, entry.Name()))
-			//go find(path + string(os.PathSeparator) + entry.Name(), pattern)
-			wg.Add(1)
-			go find(filepath.Join(path, entry.Name()), pattern, wg)
+			end = false
+			nextWg.Add(1)
+			go find(filepath.Join(path, entry.Name()), pattern, nextWg)
 		} else {
 			fmt.Println(entry.Name())
 		}
@@ -62,9 +77,8 @@ func find(path string, pattern string, wg sync.WaitGroup) {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func visit(path string, f os.FileInfo, err error) error {
-	fmt.Printf("Visited: %s\n", path)
-	return nil
+	if !end {
+		nextWg.Wait()
+	}
+	wg.Done()
 }
