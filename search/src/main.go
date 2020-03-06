@@ -2,17 +2,37 @@ package main
 
 import (
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"os"
+	. "search/src/opts"
 	"search/src/searcher"
 )
 
 func main() {
+	var opts Opts
+
+	args, err := flags.ParseArgs(&opts, os.Args)
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Println(opts.Base)
+	// fmt.Printf("Wow %d", opts.Max)
+	// fmt.Printf(strings.Join(args, " "))
+
 	// Unsupported command
-	if len(os.Args) == 1 {
+	if len(args) == 1 {
 		// TODO document modes
-		fmt.Printf("USAGE : %s <target_directory> <target_filename or part of filename> \n", os.Args[0])
+		fmt.Printf("USAGE : %s [--base <root_directory>] [--max <maximum matches>] <search> \n", os.Args[0])
+		fmt.Printf("\t --base or -b : Specifiy directory in which to search for files")
+		fmt.Printf("\t --max or -m : Maximum amount of matches")
 		os.Exit(0)
 	}
+
+	// Add search query to struct
+	opts.Search = args[1]
+
+	/**
 	// Declare variables
 	var targetDirectory string
 	var fileName string
@@ -23,7 +43,7 @@ func main() {
 	} else {
 		targetDirectory = os.Args[1]
 		fileName = os.Args[2]
-	}
+	}*/
 
-	searcher.FindFile(targetDirectory, fileName)
+	searcher.FindFiles(opts)
 }

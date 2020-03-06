@@ -3,10 +3,11 @@ package searcher
 import (
 	"fmt"
 	"path/filepath"
+	. "search/src/opts"
 )
 
-func FindFile(targetDir string, pattern string) {
-	matches, err := filepath.Glob(targetDir + pattern)
+func FindFiles(opts Opts) {
+	matches, err := filepath.Glob(opts.Base + opts.Search)
 	if err != nil {
 		fmt.Println(err)
 	}
